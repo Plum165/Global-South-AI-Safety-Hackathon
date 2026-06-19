@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: ai-safety-observatory-api
+    runtime: node
+    rootDir: src
+    buildCommand: npm ci && npm run build
+    startCommand: node dist/server.cjs
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: CORS_ORIGIN
+        sync: false          # Set to your Vercel frontend URL in the Render dashboard
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false

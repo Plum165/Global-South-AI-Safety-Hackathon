@@ -1,23 +1,26 @@
-# Use an official base image (you should change this to your appropriate language/runtime)
-FROM ubuntu:22.04
+# ── Stage 1: Build ────────────────────────────────────────────────────────────
+FROM node:20-alpine AS builder
+WORKDIR /app/src
 
-# Install dependencies (example: Python, Node, C++ compilers, etc.)
-RUN apt-get update && apt-get install -y python3 python3-pip gcc nodejs npm
+# Install deps first (cached layer)
+COPY src/package*.json ./
+RUN npm ci
 
-# Set working directory
-WORKDIR /app
+# Copy source and build
+COPY src/ .
+RUN npm run build
 
-# Copy project files
-COPY . .
+# ── Stage 2: Production ───────────────────────────────────────────────────────
+FROM node:20-alpine
+WORKDIR /app/src
+ENV NODE_ENV=production
 
-# Expose the port the app runs on (If required)
-# EXPOSE 3000
+# Install production deps only
+COPY --from=builder /app/src/package*.json ./
+RUN npm ci --omit=dev
 
-# Example: Install Node.js deps
-# RUN npm install
+# Copy built artifacts
+COPY --from=builder /app/src/dist ./dist
 
-# Example: Install Python deps
-# RUN pip install -r requirements.txt
-
-# Default command (you should change this)
-CMD ["echo", "Hello from Docker! Customize me in Dockerfile."]
+EXPOSE 3000
+CMD ["node", "dist/server.cjs"]

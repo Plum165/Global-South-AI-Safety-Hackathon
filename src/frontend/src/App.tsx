@@ -15,6 +15,8 @@ import {
   AlertCircle
 } from "lucide-react";
 
+const API_BASE = import.meta.env.VITE_API_URL ?? '';
+
 export default function App() {
   const [activeTab, setActiveTab] = useState<string>("overview");
   const [interactions, setInteractions] = useState<Interaction[]>([]);
@@ -28,7 +30,7 @@ export default function App() {
       setIsLoading(true);
       setErrorMessage(null);
       try {
-        const res = await fetch("/api/interactions");
+        const res = await fetch(`${API_BASE}/api/interactions`);
         if (!res.ok) {
           throw new Error("Could not retrieve interactions database.");
         }
@@ -54,7 +56,7 @@ export default function App() {
     
     try {
       setIsLoading(true);
-      const res = await fetch("/api/reset", { method: "POST" });
+      const res = await fetch(`${API_BASE}/api/reset`, { method: "POST" });
       if (res.ok) {
         setRefreshTrigger((prev) => prev + 1);
       }

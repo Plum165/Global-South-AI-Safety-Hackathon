@@ -39,6 +39,8 @@ const TEMPLATE_PROMPTS = [
   }
 ];
 
+const API_BASE = import.meta.env.VITE_API_URL ?? '';
+
 export default function LiveAnalyzer({ onInteractionAdded }: Props) {
   const [prompt, setPrompt] = useState("");
   const [selectedModel, setSelectedModel] = useState("gemini");
@@ -56,7 +58,7 @@ export default function LiveAnalyzer({ onInteractionAdded }: Props) {
     setError(null);
 
     try {
-      const response = await fetch("/api/chat", {
+      const response = await fetch(`${API_BASE}/api/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
