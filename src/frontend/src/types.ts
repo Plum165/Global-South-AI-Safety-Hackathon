@@ -24,7 +24,9 @@ export enum Tabs {
   OVERVIEW = "overview",
   EXPLORER = "explorer",
   COMPARISON = "comparison",
-  ANALYZER = "analyzer"
+  ANALYZER = "analyzer",
+  LANGUAGES = "languages",
+  JAILBREAK = "jailbreak",
 }
 
 export interface BenchmarkCategoryStat {

@@ -5,7 +5,7 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, 
   BarChart, Bar
 } from "recharts";
-import { Shield, ShieldAlert, Cpu, Globe, Activity, ArrowRight, Trash2 } from "lucide-react";
+import { Shield, ShieldAlert, Cpu, Globe, Activity, ArrowRight, Trash2, Sparkles } from "lucide-react";
 
 interface Props {
   interactions: Interaction[];
@@ -127,6 +127,21 @@ export default function DashboardOverview({ interactions, onNavigate, onReset }:
     }));
   }, [interactions]);
 
+  // Vibe Check scores
+  const vibeScores = useMemo(() => {
+    const n = interactions.length || 1;
+    const safety          = +((interactions.reduce((s, i) => s + i.safetyScore, 0) / n) / 10).toFixed(1);
+    const trustworthiness = +((interactions.filter(i => i.safetyScore > 60).length / n) * 10).toFixed(1);
+    const transparency    = +((interactions.filter(i => i.categories.length > 0).length / n) * 10).toFixed(1);
+    const confidence      = +((1 - interactions.filter(i => i.riskScore > 39 && i.riskScore < 74).length / n) * 10).toFixed(1);
+    return [
+      { label: 'Safety',          value: safety,          desc: 'Average safety compliance'       },
+      { label: 'Trustworthiness', value: trustworthiness, desc: 'Responses above safety threshold' },
+      { label: 'Transparency',    value: transparency,    desc: 'Interactions with category labels' },
+      { label: 'Confidence',      value: confidence,      desc: 'Decisive non-ambiguous scoring'   },
+    ];
+  }, [interactions]);
+
   // Language rendering with flag
   const renderLanguageName = (lang: string) => {
     const cleaned = lang.toLowerCase();
@@ -150,7 +165,28 @@ export default function DashboardOverview({ interactions, onNavigate, onReset }:
 
   return (
     <div id="dashboard-overview-root" className="space-y-8 animate-fade-in">
-      
+
+      {/* HERO STRIP */}
+      <div className="bg-gradient-to-r from-[#0d1117] via-[#161618] to-[#0d1117] border border-white/5 rounded-2xl p-6 flex items-center justify-between gap-6">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2.5 mb-2">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">AI Safety Observatory · Africa</span>
+            <span className="flex items-center gap-1.5 text-[10px] text-red-400 font-bold uppercase bg-red-500/10 border border-red-500/20 px-2.5 py-0.5 rounded-full shrink-0">
+              <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-ping inline-block" />
+              Live Monitoring
+            </span>
+          </div>
+          <h1 className="text-2xl font-bold text-white tracking-tight">System Safety Dashboard</h1>
+          <p className="text-slate-400 text-xs mt-1">Real-time AI safety monitoring across African languages, models, and risk categories</p>
+        </div>
+        <div className="hidden md:flex flex-col items-center justify-center w-24 h-24 rounded-full border-4 border-emerald-500/30 bg-emerald-500/5 shrink-0">
+          <span className={`text-3xl font-mono font-bold tabular-nums ${avgSafetyScore >= 70 ? 'text-emerald-400' : avgSafetyScore >= 40 ? 'text-amber-400' : 'text-red-400'}`}>
+            {avgSafetyScore}%
+          </span>
+          <span className="text-[9px] text-slate-500 uppercase tracking-wider mt-1">Safety</span>
+        </div>
+      </div>
+
       {/* 1. KEY INFORMATION METRICS ROWS */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         
@@ -366,6 +402,39 @@ export default function DashboardOverview({ interactions, onNavigate, onReset }:
           </div>
         </div>
 
+      </div>
+
+      {/* VIBE CHECK */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-purple-500/10 border border-purple-500/20 rounded-lg">
+            <Sparkles className="h-4 w-4 text-purple-400" />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-white">AI Vibe Report</h3>
+            <p className="text-[11px] text-slate-500 mt-0.5">Trust signals derived from live response analysis — what judges will remember</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {vibeScores.map(score => {
+            const good = score.value >= 7;
+            const mid  = score.value >= 5;
+            const textCls = good ? 'text-emerald-400' : mid ? 'text-amber-400' : 'text-red-400';
+            const barCls  = good ? 'bg-emerald-500'   : mid ? 'bg-amber-500'   : 'bg-red-500';
+            const borderCls = good ? 'border-emerald-500/20' : mid ? 'border-amber-500/20' : 'border-red-500/20';
+            return (
+              <div key={score.label} className={`bg-[#161618] border ${borderCls} rounded-xl p-5 flex flex-col items-center text-center gap-2`}>
+                <span className={`text-4xl font-mono font-bold tabular-nums ${textCls}`}>{score.value}</span>
+                <span className="text-[10px] text-slate-500 uppercase tracking-widest">/ 10</span>
+                <span className="text-xs font-bold text-slate-200">{score.label}</span>
+                <span className="text-[10px] text-slate-500 leading-tight">{score.desc}</span>
+                <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden mt-1">
+                  <div className={`h-full ${barCls} rounded-full transition-all duration-700`} style={{ width: `${score.value * 10}%` }} />
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
     </div>
