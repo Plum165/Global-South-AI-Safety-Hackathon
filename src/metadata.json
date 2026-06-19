@@ -1,0 +1,6 @@
+{
+  "name": "AI Safety Observatory for Africa",
+  "description": "Monitor, analyze, and visualize the safety of AI model responses across different languages, risk levels, and models, focusing on African languages and contexts.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
