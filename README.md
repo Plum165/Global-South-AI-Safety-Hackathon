@@ -1,7 +1,4 @@
 # Hackathon Submission Template 
-
-Template for all users
-
 ---
 
 ## 📂 Repository Structure
@@ -87,4 +84,4 @@ Template for all users
 
 
 - [Linkin Profile](https://www.linkedin.com/in/moegamatsamsodien/)
-- [Portfolio](https://plum165.github.io/portfolio/)
+- [Portfolio](https://moegamat-samsodien-portfolio.vercel.app/)
