@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd \"/c/Users/27823/Desktop/OneDrive - University of Cape Town/Fourth Year/Projects/Global-South-AI-Safety-Hackathon\" && find . -not -path '*/\\\\.*' -type f | grep -v node_modules | sort)",
+      "Read(//c/c/Users/27823/Desktop/OneDrive - University of Cape Town/Fourth Year/Projects/**)",
+      "Bash(find . -not -path '*/\\\\.*' -type f)"
+    ]
+  }
+}
