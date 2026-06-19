@@ -14,30 +14,42 @@ Many global LLM safety guardrails fail to address complex regional structures in
 ## 📂 Project Folder Structure
 
 ```txt
-├── .env.example               # Documentation of required environment parameters
-├── .gitignore                 # Excludes compiled files and local system binaries
-├── index.html                 # Central HTML viewport entry pointing to the frontend
-├── metadata.json              # Applet metadata, frame privileges, and capabilities
-├── package.json               # Full lifecycle build scripts and system dependencies
-├── tsconfig.json              # TypeScript engine compiler options
-├── vite.config.ts             # Vite server controls and path resolution configuration
+src/backend/
+├── server.ts                    ← Rewritten: mounts all routers, loads dotenv
 │
-├── backend/                   # SERVER-SIDE CONTROLS
-│   └── server.ts              # Express API hosting static assets, metrics calculations,
-│                              # and lazy evaluation requests to the Google GenAI SDK.
+├── routes/
+│   ├── chat.ts                  ← POST /api/chat  (full pipeline)
+│   ├── interactions.ts          ← GET /api/interactions + POST /api/interactions/reset
+│   ├── metrics.ts               ← GET /api/metrics
+│   └── analyze.ts               ← POST /api/analyze (analysis only, no LLM call)
 │
-└── frontend/
-    └── src/                   # CLIENT-SIDE ENGINE
-        ├── App.tsx            # Root component driving app state, tabs, and synchronization
-        ├── index.css          # Styled tailwind layout directives
-        ├── main.tsx           # Primary virtual react DOM mount point
-        ├── types.ts           # Shared TypeScript interfaces (Metrics, Interaction, Tabs, etc.)
-        │
-        └── components/        # CORE PRESENTATION LAYER (Modularity First)
-            ├── DashboardOverview.tsx   # Visual charts (Timeline, Pie, Metrics card highlights)
-            ├── PromptExplorer.tsx      # Comprehensive datatable filterable by model, score, or language
-            ├── ModelComparison.tsx     # Direct side-by-side benchmark comparing safety across LLMs
-            └── LiveAnalyzer.tsx        # Submit custom prompts to audit live response mitigations
+├── services/
+│   ├── languageDetector.ts      ← Detects English / Swahili / Zulu / Xhosa /
+│   │                               Sesotho / Afrikaans / Amharic / Shona / Yoruba
+│   ├── riskEngine.ts            ← 8 rule categories → score 0-100, level SAFE/LOW/MEDIUM/HIGH
+│   ├── safetyClassifier.ts      ← Wraps risk into SafetyClassification shape
+│   └── logger.ts                ← Timestamped console logger (info/warn/error/debug)
+│
+├── providers/
+│   ├── types.ts                 ← AIProvider interface { generateResponse(prompt) }
+│   ├── index.ts                 ← getProvider(model) factory — key-checks + fallback
+│   ├── gemini.ts                ← GoogleGenAI → gemini-2.0-flash
+│   ├── openai.ts                ← OpenAI SDK → gpt-4o-mini
+│   ├── anthropic.ts             ← Anthropic SDK → claude-haiku-4-5-20251001
+│   └── local.ts                 ← Fully offline mock (multilingual refusals + safe responses)
+│
+├── analytics/
+│   ├── riskScorer.ts            ← clampScore / levelFromScore / weightedScore utilities
+│   ├── metricsEngine.ts         ← computeMetrics() — language/model/category/risk breakdown
+│   └── biasAnalyzer.ts          ← Gender / racial / colonial bias pattern detection
+│
+└── db/
+    ├── models/
+    │   ├── Interaction.ts       ← Interaction interface
+    │   └── User.ts              ← User interface (admin / researcher / observer)
+    └── repository.ts            ← readInteractions / writeInteractions / appendInteraction /
+                                    resetInteractions / generateId
+
 ```
 
 ---
