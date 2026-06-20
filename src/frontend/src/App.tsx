@@ -169,30 +169,6 @@ export default function App() {
 
         </nav>
 
-        {/* Footer */}
-        <div className={`p-4 mt-auto border-t ${isDark ? "border-white/5" : "border-slate-100"} space-y-2`}>
-          <div className={`flex items-center justify-between text-[10px] px-1 ${isDark ? "text-slate-500" : "text-slate-400"}`}>
-            <span>{interactions.length} interactions</span>
-            <span className="flex items-center gap-1 text-emerald-500">
-              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
-              Connected
-            </span>
-          </div>
-          <div className={`p-3.5 rounded-xl border ${isDark ? "bg-emerald-900/20 border-emerald-500/20" : "bg-emerald-50 border-emerald-200"}`}>
-            <div className={`text-[10px] font-bold uppercase tracking-wider ${isDark ? "text-emerald-400" : "text-emerald-700"}`}>
-              System Status
-            </div>
-            <div className="flex items-center gap-2 mt-1.5">
-              <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-              <span className={`text-xs font-semibold ${isDark ? "text-slate-200" : "text-slate-700"}`}>
-                Observatory Ready
-              </span>
-            </div>
-            <p className={`text-[9px] mt-1 leading-normal ${isDark ? "text-slate-500" : "text-slate-400"}`}>
-              African Language AI Safety Research
-            </p>
-          </div>
-        </div>
 
       </aside>
 
