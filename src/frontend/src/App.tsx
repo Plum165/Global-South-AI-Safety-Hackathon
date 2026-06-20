@@ -7,16 +7,8 @@ import LiveAnalyzer from "./components/LiveAnalyzer";
 import LanguageSafety from "./components/LanguageSafety";
 import JailbreakDashboard from "./components/JailbreakDashboard";
 import {
-  ShieldCheck,
-  Database,
-  BarChart3,
-  PlayCircle,
-  Activity,
-  RefreshCw,
-  Info,
-  AlertCircle,
-  Globe2,
-  ShieldOff,
+  Database, BarChart3, PlayCircle, Activity,
+  RefreshCw, AlertCircle, Globe2, ShieldOff, Sun, Moon,
 } from "lucide-react";
 
 const API_BASE = import.meta.env.VITE_API_URL ?? '';
@@ -27,17 +19,15 @@ export default function App() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState<number>(0);
+  const [isDark, setIsDark] = useState(true);
 
-  // Load interactions from Node.js database API dynamically
   useEffect(() => {
     async function fetchInteractions() {
       setIsLoading(true);
       setErrorMessage(null);
       try {
         const res = await fetch(`${API_BASE}/api/interactions`);
-        if (!res.ok) {
-          throw new Error("Could not retrieve interactions database.");
-        }
+        if (!res.ok) throw new Error("Could not retrieve interactions.");
         const data = await res.json();
         setInteractions(data);
       } catch (err: any) {
@@ -51,21 +41,17 @@ export default function App() {
   }, [refreshTrigger]);
 
   const handleInteractionAdded = (newInteraction: Interaction) => {
-    // Optimistic state update & local synchronization
     setInteractions((prev) => [newInteraction, ...prev]);
   };
 
   const handleResetCorpus = async () => {
-    if (!window.confirm("Are you sure you want to reset the AI Safety Observatory to the initial sample dataset?")) return;
-    
+    if (!window.confirm("Reset the observatory to the initial sample dataset?")) return;
     try {
       setIsLoading(true);
       const res = await fetch(`${API_BASE}/api/reset`, { method: "POST" });
-      if (res.ok) {
-        setRefreshTrigger((prev) => prev + 1);
-      }
+      if (res.ok) setRefreshTrigger((prev) => prev + 1);
     } catch (err) {
-      console.error("Failed to reset database", err);
+      console.error("Failed to reset", err);
     } finally {
       setIsLoading(false);
     }
@@ -75,196 +61,173 @@ export default function App() {
     switch (activeTab) {
       case "overview":
         return (
-          <DashboardOverview 
-            interactions={interactions} 
+          <DashboardOverview
+            interactions={interactions}
             onNavigate={(tab) => setActiveTab(tab)}
             onReset={handleResetCorpus}
+            isDark={isDark}
           />
         );
-      case "explorer":
-        return <PromptExplorer interactions={interactions} />;
-      case "comparison":
-        return <ModelComparison interactions={interactions} />;
-      case "analyzer":
-        return <LiveAnalyzer onInteractionAdded={handleInteractionAdded} />;
-      case "languages":
-        return <LanguageSafety interactions={interactions} />;
-      case "jailbreak":
-        return <JailbreakDashboard interactions={interactions} />;
+      case "explorer":   return <PromptExplorer interactions={interactions} />;
+      case "comparison": return <ModelComparison interactions={interactions} />;
+      case "analyzer":   return <LiveAnalyzer onInteractionAdded={handleInteractionAdded} />;
+      case "languages":  return <LanguageSafety interactions={interactions} />;
+      case "jailbreak":  return <JailbreakDashboard interactions={interactions} />;
       default:
         return (
-          <DashboardOverview 
-            interactions={interactions} 
+          <DashboardOverview
+            interactions={interactions}
             onNavigate={(tab) => setActiveTab(tab)}
             onReset={handleResetCorpus}
+            isDark={isDark}
           />
         );
     }
   };
 
+  /* ── Shared nav button ─────────────────────────────────────────────────── */
+  const navBtn = (tab: string, label: string, Icon: any, accent = false) => (
+    <button
+      key={tab}
+      onClick={() => setActiveTab(tab)}
+      className={`w-full text-left px-3 py-2.5 rounded-lg text-xs font-semibold flex items-center gap-3 transition-all ${
+        activeTab === tab
+          ? isDark
+            ? "bg-amber-500/10 text-amber-300 border border-amber-500/20"
+            : "bg-amber-100 text-amber-800 border border-amber-200"
+          : isDark
+            ? "text-slate-400 hover:bg-white/5 hover:text-slate-200"
+            : "text-slate-500 hover:bg-slate-100 hover:text-slate-800"
+      }`}
+    >
+      <Icon className={`h-4 w-4 shrink-0 ${
+        accent
+          ? "text-emerald-500"
+          : activeTab === tab
+            ? isDark ? "text-amber-400" : "text-amber-600"
+            : isDark ? "text-slate-500" : "text-slate-400"
+      }`} />
+      <span>{label}</span>
+    </button>
+  );
+
   return (
-    <div className="min-h-screen bg-[#0A0A0B] text-slate-100 font-sans flex flex-col md:flex-row">
-      
-      {/* Sidebar Navigation */}
-      <aside className="w-full md:w-64 border-r border-white/5 bg-[#0F0F11] flex flex-col shrink-0 md:min-h-screen">
-        
-        {/* Logo and branding title */}
-        <div className="p-6 border-b border-white/5">
+    <div
+      id="app-root"
+      className={`min-h-screen font-sans flex flex-col md:flex-row ${
+        isDark ? "dark bg-[#0A0A0B] text-slate-100" : "bg-[#F5F0E8] text-slate-900"
+      }`}
+    >
+
+      {/* ── Sidebar ─────────────────────────────────────────────────────── */}
+      <aside className={`w-full md:w-64 border-r flex flex-col shrink-0 md:min-h-screen ${
+        isDark ? "bg-[#0F0F11] border-white/5" : "bg-white border-slate-200"
+      }`}>
+
+        {/* Pan-African accent stripe */}
+        <div className="h-0.5 w-full bg-gradient-to-r from-red-500 via-amber-400 to-emerald-500" />
+
+        {/* Branding */}
+        <div className={`p-6 border-b ${isDark ? "border-white/5" : "border-slate-100"}`}>
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center shadow-md shadow-emerald-500/20 shrink-0">
-              <svg className="w-5 h-5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04M12 21.355r2.73-1.365a11.95 11.95 0 005.888-10.191V7.169m-17.176 0V11.19c0 4.27 1.44 8.207 3.847 11.355" />
+            <div className="w-8 h-8 bg-gradient-to-br from-amber-500 to-emerald-600 rounded-lg flex items-center justify-center shadow-md shrink-0">
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5"
+                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A11.955 11.955 0 003 12c0 5.523 4.477 10 9 10a9.956 9.956 0 005.618-1.727" />
               </svg>
             </div>
             <div className="min-w-0">
-              <h1 className="text-sm font-bold tracking-tight uppercase leading-none text-white">Safety Africa</h1>
+              <h1 className={`text-sm font-bold tracking-tight uppercase leading-none ${isDark ? "text-white" : "text-slate-900"}`}>
+                Safety Africa
+              </h1>
               <div className="flex items-center gap-1.5 mt-1">
                 <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
-                <span className="text-[9px] text-emerald-500 font-bold uppercase tracking-widest">Live Observatory</span>
+                <span className={`text-[9px] font-bold uppercase tracking-widest ${isDark ? "text-emerald-400" : "text-emerald-700"}`}>
+                  Observatory
+                </span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Sidebar Nav anchors */}
+        {/* Nav */}
         <nav className="flex-1 p-4 space-y-1.5 flex flex-col">
-          
-          <button
-            onClick={() => setActiveTab("overview")}
-            className={`w-full text-left px-3 py-2.5 rounded-lg text-xs font-semibold flex items-center gap-3 transition ${
-              activeTab === "overview" 
-                ? "bg-white/10 text-white" 
-                : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
-            }`}
-          >
-            <Activity className="h-4 w-4" />
-            <span>DASHBOARD METRICS</span>
-          </button>
 
-          <button
-            onClick={() => setActiveTab("explorer")}
-            className={`w-full text-left px-3 py-2.5 rounded-lg text-xs font-semibold flex items-center gap-3 transition ${
-              activeTab === "explorer" 
-                ? "bg-white/10 text-white" 
-                : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
-            }`}
-          >
-            <Database className="h-4 w-4" />
-            <span>PROMPT EXPLORER</span>
-          </button>
+          {navBtn("overview",   "DASHBOARD METRICS", Activity)}
+          {navBtn("explorer",   "PROMPT EXPLORER",   Database)}
+          {navBtn("comparison", "MODEL COMPARISON",  BarChart3)}
+          {navBtn("analyzer",   "LIVE ANALYZER",     PlayCircle, true)}
 
-          <button
-            onClick={() => setActiveTab("comparison")}
-            className={`w-full text-left px-3 py-2.5 rounded-lg text-xs font-semibold flex items-center gap-3 transition ${
-              activeTab === "comparison" 
-                ? "bg-white/10 text-white" 
-                : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
-            }`}
-          >
-            <BarChart3 className="h-4 w-4" />
-            <span>MODEL COMPARISON</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab("analyzer")}
-            className={`w-full text-left px-3 py-2.5 rounded-lg text-xs font-semibold flex items-center gap-3 transition ${
-              activeTab === "analyzer"
-                ? "bg-white/10 text-white border-l-2 border-emerald-500 pl-2"
-                : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
-            }`}
-          >
-            <PlayCircle className="h-4 w-4 text-emerald-400" />
-            <span className="text-emerald-400 font-bold">LIVE ANALYZER</span>
-          </button>
-
-          {/* Divider */}
           <div className="pt-2 pb-1">
-            <span className="text-[9px] font-bold uppercase tracking-widest text-slate-600 px-3">Analysis</span>
+            <span className={`text-[9px] font-bold uppercase tracking-widest px-3 ${isDark ? "text-slate-600" : "text-slate-400"}`}>
+              Analysis
+            </span>
           </div>
 
-          <button
-            onClick={() => setActiveTab("languages")}
-            className={`w-full text-left px-3 py-2.5 rounded-lg text-xs font-semibold flex items-center gap-3 transition ${
-              activeTab === "languages"
-                ? "bg-white/10 text-white"
-                : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
-            }`}
-          >
-            <Globe2 className="h-4 w-4" />
-            <span>LANGUAGE SAFETY</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab("jailbreak")}
-            className={`w-full text-left px-3 py-2.5 rounded-lg text-xs font-semibold flex items-center gap-3 transition ${
-              activeTab === "jailbreak"
-                ? "bg-white/10 text-white"
-                : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
-            }`}
-          >
-            <ShieldOff className="h-4 w-4" />
-            <span>JAILBREAK MONITOR</span>
-          </button>
+          {navBtn("languages", "LANGUAGE SAFETY",   Globe2)}
+          {navBtn("jailbreak", "JAILBREAK MONITOR", ShieldOff)}
 
         </nav>
 
-        {/* System gauge footer */}
-        <div className="p-4 mt-auto border-t border-white/5 space-y-2">
-          <div className="flex items-center justify-between text-[10px] text-slate-500 px-1">
-            <span>{interactions.length} interactions stored</span>
+        {/* Footer */}
+        <div className={`p-4 mt-auto border-t ${isDark ? "border-white/5" : "border-slate-100"} space-y-2`}>
+          <div className={`flex items-center justify-between text-[10px] px-1 ${isDark ? "text-slate-500" : "text-slate-400"}`}>
+            <span>{interactions.length} interactions</span>
             <span className="flex items-center gap-1 text-emerald-500">
               <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
-              API Connected
+              Connected
             </span>
           </div>
-          <div className="bg-emerald-900/20 p-3.5 rounded-xl border border-emerald-500/20">
-            <div className="text-[10px] text-emerald-400 uppercase font-bold tracking-wider">System Status</div>
+          <div className={`p-3.5 rounded-xl border ${isDark ? "bg-emerald-900/20 border-emerald-500/20" : "bg-emerald-50 border-emerald-200"}`}>
+            <div className={`text-[10px] font-bold uppercase tracking-wider ${isDark ? "text-emerald-400" : "text-emerald-700"}`}>
+              System Status
+            </div>
             <div className="flex items-center gap-2 mt-1.5">
               <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-              <span className="text-xs font-semibold text-slate-200">All Nodes Active</span>
+              <span className={`text-xs font-semibold ${isDark ? "text-slate-200" : "text-slate-700"}`}>
+                Observatory Ready
+              </span>
             </div>
-            <p className="text-[9px] text-slate-500 mt-1 leading-normal">Global South AI Safety · Sub-Saharan Africa</p>
+            <p className={`text-[9px] mt-1 leading-normal ${isDark ? "text-slate-500" : "text-slate-400"}`}>
+              African Language AI Safety Research
+            </p>
           </div>
         </div>
 
       </aside>
 
-      {/* Main Content Viewport */}
+      {/* ── Main content ──────────────────────────────────────────────────── */}
       <main className="flex-1 flex flex-col min-w-0">
-        
-        {/* Live Header bar */}
-        <header className="h-16 border-b border-white/5 flex items-center justify-between px-6 md:px-8 bg-[#0A0A0B]/50 backdrop-blur-sm sticky top-0 z-10">
-          
-          <div className="flex items-center gap-4 text-xs font-medium text-slate-500">
-            <span>Region: Sub-Saharan Africa</span>
-            <span className="w-1.5 h-1.5 bg-slate-700 rounded-full"></span>
-            <span className="hidden sm:inline">Last Sync: Just Now</span>
+
+        {/* Top bar */}
+        <header className={`h-14 border-b flex items-center justify-between px-6 md:px-8 sticky top-0 z-10 backdrop-blur-sm ${
+          isDark ? "border-white/5 bg-[#0A0A0B]/70" : "border-slate-200 bg-[#F5F0E8]/80"
+        }`}>
+
+          <div className={`flex items-center gap-2 text-xs font-medium ${isDark ? "text-slate-500" : "text-slate-400"}`}>
+            <Globe2 className="h-3.5 w-3.5" />
+            <span>African Language Safety Research</span>
           </div>
 
-          <div className="flex items-center gap-4">
-            
-            {/* Live Feed simulated indicator */}
-            <div className="flex items-center bg-white/5 px-3 py-1.5 rounded-full border border-white/10 shrink-0">
-              <div className="w-4 h-4 bg-red-500/20 border border-red-500/50 rounded-full flex items-center justify-center mr-2">
-                <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-ping"></div>
-              </div>
-              <span className="text-[11px] font-bold text-red-400 uppercase tracking-widest">LIVE FEED</span>
-            </div>
-
-            {/* Profile trigger */}
-            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-emerald-500 shadow-md flex items-center justify-center text-[10px] font-bold text-white uppercase" title="Observatory Administrator">
-              OA
-            </div>
-
-          </div>
+          <button
+            onClick={() => setIsDark(d => !d)}
+            className={`p-2 rounded-lg border transition-all ${
+              isDark
+                ? "border-white/10 bg-white/5 text-slate-400 hover:text-amber-300 hover:bg-white/10 hover:border-amber-500/30"
+                : "border-slate-200 bg-white text-slate-500 hover:text-slate-900 hover:bg-slate-100"
+            }`}
+            title={isDark ? "Switch to light theme" : "Switch to dark theme"}
+          >
+            {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </button>
 
         </header>
 
-        {/* Dynamic page placement */}
+        {/* Page content */}
         <div className="p-6 md:p-8 flex-1 max-w-7xl w-full mx-auto space-y-6">
-          
+
           {errorMessage && (
-            <div className="p-3 bg-amber-950/20 text-amber-400 border border-amber-500/20 text-xs rounded-lg font-medium flex items-center gap-2">
+            <div className={`p-3 border border-amber-500/20 text-amber-400 text-xs rounded-lg font-medium flex items-center gap-2 ${isDark ? "bg-amber-950/20" : "bg-amber-50"}`}>
               <AlertCircle className="h-4 w-4 shrink-0" />
               <span>{errorMessage}</span>
             </div>
@@ -272,8 +235,10 @@ export default function App() {
 
           {isLoading && interactions.length === 0 ? (
             <div className="min-h-[400px] flex flex-col items-center justify-center space-y-3">
-              <RefreshCw className="h-8 w-8 text-indigo-400 animate-spin" />
-              <p className="text-slate-400 text-xs font-semibold">Synchronizing with AI Safety Observatory backend servers...</p>
+              <RefreshCw className="h-8 w-8 text-amber-500 animate-spin" />
+              <p className={`text-xs font-semibold ${isDark ? "text-slate-400" : "text-slate-500"}`}>
+                Loading observatory data…
+              </p>
             </div>
           ) : (
             renderActiveTabContent()

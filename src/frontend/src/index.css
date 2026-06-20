@@ -1,1 +1,53 @@
 @import "tailwindcss";
+
+/* Enable class-based dark mode for Tailwind v4 */
+@variant dark (&:where(.dark, .dark *));
+
+/* Page transition */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+  animation: fade-in 0.25s ease-out;
+}
+
+/* ── Light theme overrides ─────────────────────────────────────────────────
+   Targets components that use hardcoded dark Tailwind classes.
+   Applied when #app-root does NOT carry the .dark class.
+────────────────────────────────────────────────────────────────────────── */
+
+/* Surfaces */
+#app-root:not(.dark) .bg-\[#161618\]          { background-color: #ffffff !important; }
+#app-root:not(.dark) .bg-\[#0f172a\]          { background-color: #EEF2FF !important; }
+#app-root:not(.dark) .bg-slate-900            { background-color: #ffffff !important; }
+#app-root:not(.dark) .bg-slate-800            { background-color: #f1f5f9 !important; }
+#app-root:not(.dark) .bg-amber-950\/20        { background-color: rgba(251,191,36,0.1) !important; }
+#app-root:not(.dark) .bg-emerald-900\/20      { background-color: rgba(16,185,129,0.08) !important; }
+#app-root:not(.dark) .bg-indigo-950\/80       { background-color: #EEF2FF !important; }
+#app-root:not(.dark) .from-indigo-950\/80     { --tw-gradient-from: #EEF2FF !important; }
+#app-root:not(.dark) .to-slate-900            { --tw-gradient-to: #ffffff !important; }
+
+/* Borders */
+#app-root:not(.dark) .border-slate-800           { border-color: #e2e8f0 !important; }
+#app-root:not(.dark) .border-white\/5            { border-color: rgba(0,0,0,0.07) !important; }
+#app-root:not(.dark) .border-white\/\[0\.05\]    { border-color: rgba(0,0,0,0.07) !important; }
+#app-root:not(.dark) .border-white\/\[0\.03\]    { border-color: rgba(0,0,0,0.04) !important; }
+#app-root:not(.dark) .border-indigo-500\/20      { border-color: rgba(99,102,241,0.2) !important; }
+
+/* Dividers */
+#app-root:not(.dark) .divide-white\/\[0\.03\] > * + * { border-color: rgba(0,0,0,0.05) !important; }
+
+/* Text */
+#app-root:not(.dark) .text-white   { color: #1c1917 !important; }
+#app-root:not(.dark) .text-slate-100 { color: #1c1917 !important; }
+#app-root:not(.dark) .text-slate-200 { color: #374151 !important; }
+#app-root:not(.dark) .text-slate-300 { color: #374151 !important; }
+#app-root:not(.dark) .text-slate-400 { color: #6b7280 !important; }
+#app-root:not(.dark) .text-slate-500 { color: #9ca3af !important; }
+#app-root:not(.dark) .text-slate-600 { color: #6b7280 !important; }
+
+/* Row hovers */
+#app-root:not(.dark) .hover\:bg-white\/\[0\.02\]:hover { background-color: rgba(0,0,0,0.02) !important; }
+#app-root:not(.dark) .hover\:bg-white\/5:hover         { background-color: rgba(0,0,0,0.03) !important; }
+#app-root:not(.dark) .hover\:bg-white\/\[0\.03\]:hover { background-color: rgba(0,0,0,0.02) !important; }
