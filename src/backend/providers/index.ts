@@ -7,28 +7,32 @@ import { AnthropicProvider } from './anthropic.ts';
 import { LocalProvider } from './local.ts';
 import { logger } from '../services/logger.ts';
 
-export function getProvider(model: string): AIProvider {
+export function getProvider(
+  model: string,
+  customApiKey?: string,
+  customModelName?: string,
+): AIProvider {
   const normalized = model.toLowerCase().trim();
 
   switch (normalized) {
     case 'gemini': {
-      const key = process.env.GEMINI_API_KEY;
-      if (key && key !== 'MY_GEMINI_API_KEY') return new GeminiProvider();
+      const key = customApiKey || process.env.GEMINI_API_KEY;
+      if (key && key !== 'MY_GEMINI_API_KEY') return new GeminiProvider(key, customModelName);
       logger.warn('GEMINI_API_KEY not configured — falling back to local simulation');
       return new LocalProvider('gemini');
     }
 
     case 'openai': {
-      const key = process.env.OPENAI_API_KEY;
-      if (key) return new OpenAIProvider();
+      const key = customApiKey || process.env.OPENAI_API_KEY;
+      if (key) return new OpenAIProvider(key, customModelName);
       logger.warn('OPENAI_API_KEY not configured — falling back to local simulation');
       return new LocalProvider('openai');
     }
 
     case 'anthropic':
     case 'claude': {
-      const key = process.env.ANTHROPIC_API_KEY;
-      if (key) return new AnthropicProvider();
+      const key = customApiKey || process.env.ANTHROPIC_API_KEY;
+      if (key) return new AnthropicProvider(key, customModelName);
       logger.warn('ANTHROPIC_API_KEY not configured — falling back to local simulation');
       return new LocalProvider('anthropic');
     }

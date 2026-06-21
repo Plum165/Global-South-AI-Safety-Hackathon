@@ -4,14 +4,16 @@ import { logger } from '../services/logger.ts';
 
 export class AnthropicProvider implements AIProvider {
   private client: Anthropic;
+  private modelName: string;
 
-  constructor() {
-    this.client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  constructor(apiKey?: string, modelName?: string) {
+    this.client = new Anthropic({ apiKey: apiKey || process.env.ANTHROPIC_API_KEY });
+    this.modelName = modelName || 'claude-haiku-4-5-20251001';
   }
 
   async generateResponse(prompt: string): Promise<string> {
     const message = await this.client.messages.create({
-      model: 'claude-haiku-4-5-20251001',
+      model: this.modelName,
       max_tokens: 1024,
       messages: [{ role: 'user', content: prompt }],
     });

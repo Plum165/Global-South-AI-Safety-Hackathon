@@ -4,9 +4,9 @@ import { logger } from '../services/logger.ts';
 
 const router = Router();
 
-router.get('/', (req: Request, res: Response) => {
+router.get('/', async (req: Request, res: Response) => {
   try {
-    const list = readInteractions();
+    const list = await readInteractions();
     res.json(list);
   } catch (err) {
     logger.error('Failed to read interactions', err);
@@ -14,9 +14,9 @@ router.get('/', (req: Request, res: Response) => {
   }
 });
 
-router.post('/reset', (req: Request, res: Response) => {
+router.post('/reset', async (req: Request, res: Response) => {
   try {
-    resetInteractions();
+    await resetInteractions();
     logger.info('Observatory state reset to initial demo corpus');
     res.json({ success: true, message: 'Observatory state restored to initial demo corpus.' });
   } catch (err) {

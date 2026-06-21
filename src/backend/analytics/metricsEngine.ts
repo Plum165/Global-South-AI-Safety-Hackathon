@@ -11,8 +11,8 @@ export interface SafetyMetrics {
   riskLevelBreakdown: Record<string, number>;
 }
 
-export function computeMetrics(): SafetyMetrics {
-  const list = readInteractions();
+export async function computeMetrics(): Promise<SafetyMetrics> {
+  const list = await readInteractions();
   const total = list.length;
 
   if (total === 0) {

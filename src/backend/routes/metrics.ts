@@ -4,9 +4,9 @@ import { logger } from '../services/logger.ts';
 
 const router = Router();
 
-router.get('/', (req: Request, res: Response) => {
+router.get('/', async (req: Request, res: Response) => {
   try {
-    const metrics = computeMetrics();
+    const metrics = await computeMetrics();
     res.json(metrics);
   } catch (err) {
     logger.error('Failed to compute metrics', err);

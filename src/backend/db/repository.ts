@@ -2,6 +2,9 @@ import fs from 'fs';
 import path from 'path';
 import type { Interaction } from './models/Interaction.ts';
 import { logger } from '../services/logger.ts';
+import { getRedis } from './redisClient.ts';
+
+const REDIS_KEY = 'obs:interactions';
 
 const DB_FILE = path.join(process.cwd(), 'interactions.json');
 
@@ -96,36 +99,84 @@ export const INITIAL_INTERACTIONS: Interaction[] = [
   },
 ];
 
-export function readInteractions(): Interaction[] {
+/* ── JSON fallback helpers ──────────────────────────────────────────────── */
+
+function jsonRead(): Interaction[] {
   try {
     if (!fs.existsSync(DB_FILE)) {
       fs.writeFileSync(DB_FILE, JSON.stringify(INITIAL_INTERACTIONS, null, 2), 'utf-8');
       return [...INITIAL_INTERACTIONS];
     }
-    const raw = fs.readFileSync(DB_FILE, 'utf-8');
-    return JSON.parse(raw) as Interaction[];
+    return JSON.parse(fs.readFileSync(DB_FILE, 'utf-8')) as Interaction[];
   } catch (err) {
-    logger.error('Failed to read interactions database, using in-memory state', err);
+    logger.error('Failed to read interactions.json', err);
     return [...INITIAL_INTERACTIONS];
   }
 }
 
-export function writeInteractions(data: Interaction[]): void {
+function jsonWrite(data: Interaction[]): void {
   try {
     fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf-8');
   } catch (err) {
-    logger.error('Failed to write interactions database', err);
+    logger.error('Failed to write interactions.json', err);
   }
 }
 
-export function appendInteraction(interaction: Interaction): void {
-  const list = readInteractions();
-  list.push(interaction);
-  writeInteractions(list);
+/* ── Public API (Redis when available, JSON otherwise) ──────────────────── */
+
+export async function readInteractions(): Promise<Interaction[]> {
+  const redis = getRedis();
+  if (redis) {
+    try {
+      const items = await redis.lrange(REDIS_KEY, 0, -1);
+      if (items.length === 0) {
+        // First run — seed Redis from JSON or initial data
+        const seed = jsonRead();
+        if (seed.length > 0) {
+          await redis.rpush(REDIS_KEY, ...seed.map(i => JSON.stringify(i)));
+        }
+        return seed;
+      }
+      return items.map(s => JSON.parse(s) as Interaction);
+    } catch (err) {
+      logger.warn('Redis read failed — falling back to JSON', err);
+    }
+  }
+  return jsonRead();
 }
 
-export function resetInteractions(): void {
-  writeInteractions([...INITIAL_INTERACTIONS]);
+export async function appendInteraction(interaction: Interaction): Promise<void> {
+  const redis = getRedis();
+  if (redis) {
+    try {
+      await redis.rpush(REDIS_KEY, JSON.stringify(interaction));
+      return;
+    } catch (err) {
+      logger.warn('Redis write failed — falling back to JSON', err);
+    }
+  }
+  const list = jsonRead();
+  list.push(interaction);
+  jsonWrite(list);
+}
+
+export async function resetInteractions(): Promise<void> {
+  const redis = getRedis();
+  if (redis) {
+    try {
+      await redis.del(REDIS_KEY);
+      await redis.rpush(REDIS_KEY, ...INITIAL_INTERACTIONS.map(i => JSON.stringify(i)));
+      return;
+    } catch (err) {
+      logger.warn('Redis reset failed — falling back to JSON', err);
+    }
+  }
+  jsonWrite([...INITIAL_INTERACTIONS]);
+}
+
+/** Kept for compatibility — only used in routes that don't touch Redis directly */
+export function writeInteractions(data: Interaction[]): void {
+  jsonWrite(data);
 }
 
 export function generateId(): string {

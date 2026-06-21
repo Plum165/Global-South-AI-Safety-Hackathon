@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Interaction } from "../types";
-import { ShieldCheck, ShieldAlert, Sparkles, Send, Loader2, Info, ArrowRight, HelpCircle } from "lucide-react";
+import { ShieldAlert, Sparkles, Send, Loader2, Info, ArrowRight, KeyRound, ChevronDown, ChevronUp } from "lucide-react";
 
 interface Props {
   onInteractionAdded: (interaction: Interaction) => void;
@@ -41,14 +41,33 @@ const TEMPLATE_PROMPTS = [
 
 const API_BASE = import.meta.env.VITE_API_URL ?? '';
 
+interface CustomKeys {
+  gemini: string;
+  openai: string;
+  anthropic: string;
+}
+
+interface CustomModels {
+  gemini: string;
+  openai: string;
+  anthropic: string;
+}
+
 export default function LiveAnalyzer({ onInteractionAdded }: Props) {
   const [prompt, setPrompt] = useState("");
   const [selectedModel, setSelectedModel] = useState("gemini");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
-  // Results of last run
   const [lastResult, setLastResult] = useState<Interaction | null>(null);
+
+  // Custom API key panel
+  const [showKeyPanel, setShowKeyPanel] = useState(false);
+  const [customKeys, setCustomKeys] = useState<CustomKeys>({ gemini: "", openai: "", anthropic: "" });
+  const [customModels, setCustomModels] = useState<CustomModels>({
+    gemini: "gemini-2.0-flash",
+    openai: "gpt-4o-mini",
+    anthropic: "claude-haiku-4-5-20251001",
+  });
 
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -58,13 +77,15 @@ export default function LiveAnalyzer({ onInteractionAdded }: Props) {
     setError(null);
 
     try {
+      const keyMap: Record<string, keyof CustomKeys> = { gemini: "gemini", openai: "openai", anthropic: "anthropic", claude: "anthropic" };
+      const modelKey = keyMap[selectedModel];
+      const customApiKey  = modelKey ? customKeys[modelKey]   || undefined : undefined;
+      const customModelName = modelKey ? customModels[modelKey] || undefined : undefined;
+
       const response = await fetch(`${API_BASE}/api/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          prompt,
-          model: selectedModel
-        })
+        body: JSON.stringify({ prompt, model: selectedModel, customApiKey, customModelName })
       });
 
       if (!response.ok) {
@@ -124,6 +145,64 @@ export default function LiveAnalyzer({ onInteractionAdded }: Props) {
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* API Key panel toggle */}
+          <div>
+            <button
+              type="button"
+              onClick={() => setShowKeyPanel(v => !v)}
+              className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500 hover:text-amber-400 transition"
+            >
+              <KeyRound className="h-3 w-3" />
+              Custom API Key &amp; Model
+              {showKeyPanel ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+            </button>
+
+            {showKeyPanel && (() => {
+              const mk = selectedModel === "claude" ? "anthropic" : selectedModel as keyof CustomKeys;
+              const isSupported = ["gemini", "openai", "anthropic"].includes(mk);
+              if (!isSupported) return (
+                <p className="mt-2 text-[10px] text-slate-500">Local / open-source model — no API key needed.</p>
+              );
+              return (
+                <div className="mt-2 space-y-2 p-3 bg-white/[0.02] border border-white/5 rounded-lg">
+                  <div>
+                    <label className="text-[9px] uppercase tracking-widest text-slate-500 font-bold block mb-1">
+                      {mk.toUpperCase()} API Key
+                    </label>
+                    <input
+                      type="password"
+                      value={customKeys[mk]}
+                      onChange={e => setCustomKeys(k => ({ ...k, [mk]: e.target.value }))}
+                      placeholder="Paste your key here — never stored on server"
+                      className="w-full bg-[#0A0A0B] border border-white/5 focus:border-amber-500/50 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-600 focus:outline-none transition font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[9px] uppercase tracking-widest text-slate-500 font-bold block mb-1">
+                      Model Name
+                    </label>
+                    <input
+                      type="text"
+                      value={customModels[mk]}
+                      onChange={e => setCustomModels(m => ({ ...m, [mk]: e.target.value }))}
+                      placeholder={mk === "gemini" ? "gemini-2.0-flash" : mk === "openai" ? "gpt-4o-mini" : "claude-haiku-4-5-20251001"}
+                      className="w-full bg-[#0A0A0B] border border-white/5 focus:border-amber-500/50 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-600 focus:outline-none transition font-mono"
+                    />
+                    <p className="text-[9px] text-slate-600 mt-1">
+                      e.g. gemini-2.0-pro · gpt-4o · claude-opus-4-8 — any model your key has access to
+                    </p>
+                  </div>
+                  {customKeys[mk] && (
+                    <p className="text-[9px] text-amber-400/80 flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 bg-amber-400 rounded-full inline-block" />
+                      Custom key active — sent directly to the provider, not stored.
+                    </p>
+                  )}
+                </div>
+              );
+            })()}
           </div>
 
           {/* Prompt textarea */}

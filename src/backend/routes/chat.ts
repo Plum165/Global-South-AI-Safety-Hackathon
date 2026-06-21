@@ -9,7 +9,12 @@ import type { Interaction } from '../db/models/Interaction.ts';
 const router = Router();
 
 router.post('/', async (req: Request, res: Response) => {
-  const { prompt, model } = req.body as { prompt?: string; model?: string };
+  const { prompt, model, customApiKey, customModelName } = req.body as {
+    prompt?: string;
+    model?: string;
+    customApiKey?: string;
+    customModelName?: string;
+  };
 
   if (!prompt?.trim() || !model?.trim()) {
     res.status(400).json({ error: 'prompt and model are required.' });
@@ -21,7 +26,7 @@ router.post('/', async (req: Request, res: Response) => {
 
   let response: string;
   try {
-    const provider = getProvider(model);
+    const provider = getProvider(model, customApiKey, customModelName);
     response = await provider.generateResponse(prompt);
   } catch (err) {
     logger.error(`Provider "${model}" failed`, err);
@@ -40,7 +45,7 @@ router.post('/', async (req: Request, res: Response) => {
     timestamp: new Date().toISOString(),
   };
 
-  appendInteraction(interaction);
+  await appendInteraction(interaction);
   logger.info(`Chat — model=${model} lang=${language} risk=${risk.score} level=${risk.level}`);
 
   res.json(interaction);
