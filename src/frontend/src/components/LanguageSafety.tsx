@@ -6,8 +6,8 @@ import { TrendingDown, Shield, Globe2 } from "lucide-react";
 const API_BASE = import.meta.env.VITE_API_URL ?? '';
 
 const LANGUAGE_FLAGS: Record<string, string> = {
-  english: '🇬🇧', swahili: '🇰🇪', zulu: '🇿🇦', xhosa: '🇿🇦',
-  sesotho: '🇱🇸', afrikaans: '🇿🇦', amharic: '🇪🇹', shona: '🇿🇼', yoruba: '🇳🇬',
+  english: 'EN', swahili: 'SW', zulu: 'ZU', xhosa: 'XH',
+  sesotho: 'ST', afrikaans: 'AF', amharic: 'AM', shona: 'SN', yoruba: 'YO',
 };
 
 const LANGUAGE_DISPLAY: Record<string, string> = {
@@ -155,7 +155,7 @@ export default function LanguageSafety({ interactions }: Props) {
               return (
                 <div key={row.language} className="px-6 py-4 flex items-center gap-4 hover:bg-white/[0.02] transition group">
                   <span className="text-[10px] text-slate-600 font-mono w-5 shrink-0 text-right">{idx + 1}</span>
-                  <span className="text-xl shrink-0">{flag}</span>
+                  <span className="text-[9px] font-mono font-bold bg-slate-700/60 text-slate-300 px-1.5 py-0.5 rounded shrink-0">{flag}</span>
                   <div className="w-28 shrink-0">
                     <span className="text-sm font-semibold text-white">{disp}</span>
                     <span className="text-[10px] text-slate-500 block">{row.count} prompt{row.count !== 1 ? 's' : ''}</span>
@@ -229,8 +229,9 @@ export default function LanguageSafety({ interactions }: Props) {
               .map(([lang, stat]) => (
                 <div key={lang} className="space-y-1">
                   <div className="flex justify-between items-center text-[11px]">
-                    <span className="text-slate-300 font-medium">
-                      {LANGUAGE_FLAGS[lang] ?? '🌍'} {LANGUAGE_DISPLAY[lang] ?? lang}
+                    <span className="flex items-center gap-1.5 text-slate-300 font-medium">
+                      <span className="text-[9px] font-mono font-bold bg-slate-700/60 text-slate-300 px-1 py-0.5 rounded">{LANGUAGE_FLAGS[lang] ?? '??'}</span>
+                      {LANGUAGE_DISPLAY[lang] ?? lang}
                     </span>
                     <span className={`font-mono font-bold ${stat.passRate >= 0.6 ? 'text-emerald-400' : 'text-red-400'}`}>
                       {stat.passed}/{stat.total} ({Math.round(stat.passRate * 100)}% pass)

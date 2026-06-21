@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Interaction } from "../types";
-import { ShieldAlert, Sparkles, Send, Loader2, Info, ArrowRight, KeyRound, ChevronDown, ChevronUp } from "lucide-react";
+import { ShieldAlert, Sparkles, Send, Loader2, Info, ArrowRight, KeyRound, ChevronDown, ChevronUp, Languages } from "lucide-react";
 
 interface Props {
   onInteractionAdded: (interaction: Interaction) => void;
@@ -59,6 +59,8 @@ export default function LiveAnalyzer({ onInteractionAdded }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastResult, setLastResult] = useState<Interaction | null>(null);
+  const [translation, setTranslation] = useState<string | null>(null);
+  const [translating, setTranslating] = useState(false);
 
   // Custom API key panel
   const [showKeyPanel, setShowKeyPanel] = useState(false);
@@ -75,6 +77,7 @@ export default function LiveAnalyzer({ onInteractionAdded }: Props) {
 
     setLoading(true);
     setError(null);
+    setTranslation(null);
 
     try {
       const keyMap: Record<string, keyof CustomKeys> = { gemini: "gemini", openai: "openai", anthropic: "anthropic", claude: "anthropic" };
@@ -107,6 +110,32 @@ export default function LiveAnalyzer({ onInteractionAdded }: Props) {
   const loadTemplate = (item: typeof TEMPLATE_PROMPTS[0]) => {
     setPrompt(item.prompt);
     setSelectedModel(item.model);
+  };
+
+  const handleTranslate = async () => {
+    if (!lastResult) return;
+    setTranslating(true);
+    try {
+      const keyMap: Record<string, keyof CustomKeys> = { gemini: "gemini", openai: "openai", anthropic: "anthropic", claude: "anthropic" };
+      const mk = keyMap[selectedModel];
+      const res = await fetch(`${API_BASE}/api/translate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text: lastResult.response,
+          model: selectedModel,
+          customApiKey: mk ? customKeys[mk] || undefined : undefined,
+          customModelName: mk ? customModels[mk] || undefined : undefined,
+        }),
+      });
+      if (!res.ok) throw new Error("Translation failed");
+      const { translation: t } = await res.json();
+      setTranslation(t);
+    } catch {
+      setTranslation("Translation unavailable.");
+    } finally {
+      setTranslating(false);
+    }
   };
 
   return (
@@ -331,13 +360,13 @@ export default function LiveAnalyzer({ onInteractionAdded }: Props) {
               <div>
                 <span className="text-slate-500 block uppercase font-mono text-[9px] tracking-widest">Language Detected</span>
                 <span className="capitalize text-slate-200 text-sm font-semibold mt-1 block">
-                  🌍 {lastResult.language}
+                  {lastResult.language}
                 </span>
               </div>
               <div>
                 <span className="text-slate-500 block uppercase font-mono text-[9px] tracking-widest">Model Simulated</span>
                 <span className="capitalize text-indigo-400 text-sm font-semibold mt-1 block uppercase">
-                  📦 {lastResult.model}
+                  {lastResult.model}
                 </span>
               </div>
             </div>
@@ -350,7 +379,7 @@ export default function LiveAnalyzer({ onInteractionAdded }: Props) {
                     key={cat}
                     className="bg-[#0A0A0B] border border-white/5 font-semibold text-slate-300 text-[10px] px-2.5 py-1 rounded-lg"
                   >
-                    🚀 {cat}
+                    {cat}
                   </span>
                 ))}
               </div>
@@ -362,6 +391,44 @@ export default function LiveAnalyzer({ onInteractionAdded }: Props) {
               <p className="text-slate-350 text-xs leading-relaxed font-light font-mono italic max-h-56 overflow-y-auto pr-1">
                 "{lastResult.response}"
               </p>
+
+              {lastResult.language !== 'english' && (
+                <div className="pt-2 border-t border-white/[0.04] space-y-2">
+                  {!translation ? (
+                    <button
+                      type="button"
+                      onClick={handleTranslate}
+                      disabled={translating}
+                      className="flex items-center gap-1.5 text-[10px] font-semibold text-amber-400 hover:text-amber-300 transition disabled:opacity-50"
+                    >
+                      {translating ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <Languages className="h-3 w-3" />
+                      )}
+                      {translating ? "Translating..." : "Translate response to English"}
+                    </button>
+                  ) : (
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[9px] uppercase tracking-widest text-amber-400/70 font-bold flex items-center gap-1">
+                          <Languages className="h-3 w-3" /> English Translation
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setTranslation(null)}
+                          className="text-[9px] text-slate-600 hover:text-slate-400 transition"
+                        >
+                          dismiss
+                        </button>
+                      </div>
+                      <p className="text-slate-300 text-xs leading-relaxed font-mono italic">
+                        "{translation}"
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
           </div>

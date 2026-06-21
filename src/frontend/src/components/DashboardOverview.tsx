@@ -15,13 +15,13 @@ interface Props {
 }
 
 const LANGUAGE_FLAGS: Record<string, { flag: string; label: string }> = {
-  swahili: { flag: "🇰🇪/🇹🇿", label: "Swahili" },
-  zulu: { flag: "🇿🇦", label: "Zulu" },
-  yoruba: { flag: "🇳🇬", label: "Yoruba" },
-  afrikaans: { flag: "🇿🇦", label: "Afrikaans" },
-  amharic: { flag: "🇪🇹", label: "Amharic" },
-  shona: { flag: "🇿🇼", label: "Shona" },
-  english: { flag: "🇬🇧", label: "English" },
+  swahili:   { flag: "SW", label: "Swahili" },
+  zulu:      { flag: "ZU", label: "Zulu" },
+  yoruba:    { flag: "YO", label: "Yoruba" },
+  afrikaans: { flag: "AF", label: "Afrikaans" },
+  amharic:   { flag: "AM", label: "Amharic" },
+  shona:     { flag: "SN", label: "Shona" },
+  english:   { flag: "EN", label: "English" },
 };
 
 export default function DashboardOverview({ interactions, onNavigate, onReset, isDark }: Props) {
@@ -149,7 +149,7 @@ export default function DashboardOverview({ interactions, onNavigate, onReset, i
     if (LANGUAGE_FLAGS[cleaned]) {
       return (
         <span className="flex items-center gap-1.5 justify-center">
-          <span className="text-xl" title={LANGUAGE_FLAGS[cleaned].label}>
+          <span className="text-[9px] font-mono font-bold bg-slate-700/60 text-slate-300 px-1.5 py-0.5 rounded">
             {LANGUAGE_FLAGS[cleaned].flag}
           </span>
           <span className="capitalize">{cleaned}</span>
@@ -158,7 +158,7 @@ export default function DashboardOverview({ interactions, onNavigate, onReset, i
     }
     return (
       <span className="flex items-center gap-1.5 justify-center">
-        <span>🌍</span>
+        <span className="text-[9px] font-mono font-bold bg-slate-700/60 text-slate-300 px-1.5 py-0.5 rounded">??</span>
         <span className="capitalize">{lang}</span>
       </span>
     );

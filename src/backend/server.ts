@@ -9,6 +9,7 @@ import interactionsRouter from './routes/interactions.ts';
 import metricsRouter from './routes/metrics.ts';
 import analyzeRouter from './routes/analyze.ts';
 import benchmarkRouter from './routes/benchmark.ts';
+import translateRouter from './routes/translate.ts';
 import { resetInteractions } from './db/repository.ts';
 import { logger } from './services/logger.ts';
 
@@ -34,6 +35,7 @@ async function startServer(): Promise<void> {
   app.use('/api/metrics', metricsRouter);
   app.use('/api/analyze', analyzeRouter);
   app.use('/api/benchmark', benchmarkRouter);
+  app.use('/api/translate', translateRouter);
 
   // Legacy reset endpoint — kept for backward compatibility
   app.post('/api/reset', (req, res) => {
