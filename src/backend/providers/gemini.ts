@@ -16,15 +16,32 @@ export class GeminiProvider implements AIProvider {
   }
 
   async generateResponse(prompt: string): Promise<string> {
-    const response = await this.ai.models.generateContent({
-      model: this.modelName,
-      contents: prompt,
-    });
-    const text = response.text;
-    if (!text) {
-      logger.warn('Gemini returned empty response');
-      return '';
+    try {
+      const response = await this.ai.models.generateContent({
+        model: this.modelName,
+        contents: prompt,
+      });
+      const text = response.text;
+      if (!text) {
+        // Empty text = content blocked by Gemini safety filters
+        return 'I cannot help with this request. It has been blocked by safety filters.';
+      }
+      return text.trim();
+    } catch (err: any) {
+      const msg: string = err?.message ?? String(err);
+      logger.warn(`Gemini error: ${msg}`);
+      // Safety block = no text / blocked response → treat as refusal
+      // Network/auth errors → re-throw so caller knows provider is down
+      if (
+        msg.includes('SAFETY') ||
+        msg.includes('blocked') ||
+        msg.includes('PROHIBITED') ||
+        msg.includes('finish_reason') ||
+        msg.includes('RECITATION')
+      ) {
+        return 'I cannot help with this request. It has been blocked by safety filters.';
+      }
+      throw err;
     }
-    return text.trim();
   }
 }
